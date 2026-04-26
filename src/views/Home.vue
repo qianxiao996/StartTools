@@ -176,11 +176,23 @@ function startToolPointerDrag(event, tool) {
     return;
   }
 
+  event.preventDefault();
   pointerDragTool = tool;
   pointerDragStart = { x: event.clientX, y: event.clientY };
   pointerDragging = false;
-  document.addEventListener('pointermove', handleToolPointerMove);
-  document.addEventListener('pointerup', handleToolPointerUp, { once: true });
+  try {
+    event.currentTarget?.setPointerCapture?.(event.pointerId);
+  } catch (error) {
+    console.warn('setPointerCapture failed:', error);
+  }
+  window.addEventListener('pointermove', handleToolPointerMove, { capture: true });
+  window.addEventListener('pointerdown', handleToolPointerCancelButton, { capture: true });
+  window.addEventListener('pointerup', handleToolPointerUp, { capture: true, once: true });
+  window.addEventListener('pointercancel', handleToolPointerCancel, { capture: true, once: true });
+  window.addEventListener('mousedown', handleToolMouseCancelButton, { capture: true });
+  window.addEventListener('mouseup', handleToolMouseUpFallback, { capture: true, once: true });
+  window.addEventListener('blur', handleToolPointerCancel, { once: true });
+  document.addEventListener('dragstart', preventNativeToolDrag, { capture: true });
   document.addEventListener('contextmenu', cancelToolMoveByContextMenu, { capture: true });
 }
 
@@ -226,6 +238,16 @@ function handleToolPointerMove(event) {
     return;
   }
 
+  if (pointerDragging && (event.buttons & 2) === 2) {
+    cancelToolMoveByPointerEvent(event);
+    return;
+  }
+
+  if (pointerDragging && event.buttons === 0) {
+    handleToolPointerUp(event);
+    return;
+  }
+
   const moved = Math.abs(event.clientX - pointerDragStart.x) + Math.abs(event.clientY - pointerDragStart.y);
   if (!pointerDragging && moved < 6) {
     return;
@@ -239,7 +261,7 @@ function handleToolPointerMove(event) {
 }
 
 async function handleToolPointerUp(event) {
-  document.removeEventListener('pointermove', handleToolPointerMove);
+  removeToolPointerListeners();
 
   if (pointerDragging && draggingTool.value) {
     const target = document.elementFromPoint(event.clientX, event.clientY);
@@ -257,6 +279,61 @@ async function handleToolPointerUp(event) {
   pointerDragging = false;
 }
 
+function handleToolPointerCancelButton(event) {
+  if (event.button === 2) {
+    cancelToolMoveByPointerEvent(event);
+  }
+}
+
+function handleToolMouseCancelButton(event) {
+  if (event.button === 2) {
+    cancelToolMoveByPointerEvent(event);
+  }
+}
+
+function cancelToolMoveByPointerEvent(event) {
+  if (!isToolMoveActive.value && !pointerDragTool && !draggingTool.value) {
+    return;
+  }
+  event.preventDefault();
+  event.stopPropagation();
+  cancelToolMove();
+}
+
+function handleToolMouseUpFallback(event) {
+  if (!pointerDragTool && !draggingTool.value) {
+    removeToolPointerListeners();
+    return;
+  }
+  handleToolPointerUp(event);
+}
+
+function handleToolPointerCancel() {
+  removeToolPointerListeners();
+  pointerDragTool = null;
+  pointerDragStart = null;
+  pointerDragging = false;
+  clearToolDragState();
+}
+
+function removeToolPointerListeners() {
+  window.removeEventListener('pointermove', handleToolPointerMove, { capture: true });
+  window.removeEventListener('pointerdown', handleToolPointerCancelButton, { capture: true });
+  window.removeEventListener('pointerup', handleToolPointerUp, { capture: true });
+  window.removeEventListener('pointercancel', handleToolPointerCancel, { capture: true });
+  window.removeEventListener('mousedown', handleToolMouseCancelButton, { capture: true });
+  window.removeEventListener('mouseup', handleToolMouseUpFallback, { capture: true });
+  window.removeEventListener('blur', handleToolPointerCancel);
+  document.removeEventListener('dragstart', preventNativeToolDrag, { capture: true });
+}
+
+function preventNativeToolDrag(event) {
+  if (!pointerDragTool && !draggingTool.value) {
+    return;
+  }
+  event.preventDefault();
+}
+
 function handleToolClick(tool) {
   if (suppressNextToolClick) {
     suppressNextToolClick = false;
@@ -266,7 +343,7 @@ function handleToolClick(tool) {
 }
 
 function cancelToolMove() {
-  document.removeEventListener('pointermove', handleToolPointerMove);
+  removeToolPointerListeners();
   document.removeEventListener('contextmenu', cancelToolMoveByContextMenu, { capture: true });
   pointerDragTool = null;
   pointerDragStart = null;
@@ -279,9 +356,7 @@ function cancelToolMoveByContextMenu(event) {
   if (!isToolMoveActive.value && !pointerDragTool) {
     return;
   }
-  event.preventDefault();
-  event.stopPropagation();
-  cancelToolMove();
+  cancelToolMoveByPointerEvent(event);
 }
 
 function endToolDrag() {
@@ -369,6 +444,7 @@ async function moveToolTo(menuId, tagId) {
   const result = await invoke("update_tool", { tool: nextTool });
   if (result === "ok") {
     await loadTools(store);
+    await emit('toolUpdated', { action: 'move', toolId: Number(tool.id) });
     selectMenu(Number(menuId));
     selectTags(Number(tagId));
   } else {
@@ -412,8 +488,8 @@ watch(alltags, (newAllTags) => {
   }
 }, { immediate: true });
 
-watch(alltools, (newAllTools) => {
-  if (newAllTools.length > 0 && selectedTags.value) {
+watch(alltools, () => {
+  if (selectedTags.value) {
     Change_Tag(parseInt(selectedMenuId.value, 10), parseInt(selectedTags.value, 10));
   }
 }, { immediate: true });
@@ -425,9 +501,7 @@ watch(selectedMenuId, (menuId) => {
 });
 
 watch([selectedTags, sortField, sortType], () => {
-  if (alltools.value.length > 0) {
-    Change_Tag(parseInt(selectedMenuId.value, 10), parseInt(selectedTags.value, 10));
-  }
+  Change_Tag(parseInt(selectedMenuId.value, 10), parseInt(selectedTags.value, 10));
 });
 
 function Change_Menu(menu_id) {
@@ -696,7 +770,8 @@ async function toolsContainerHandleContextMenuAction(action) {
         let result = await invoke('clear_tool_no',  { menuId:parseInt(selectedMenuId.value), tagsId:parseInt(selectedTags.value)});
         if (result== 'ok') {
           console.log(result);
-          loadTools(store);
+          await loadTools(store);
+          await emit('toolUpdated', { action: 'clear_no' });
           selectTags(parseInt(selectedTags.value, 10));
         }else{
           await message(result, { title: '失败!', type: 'error' });
@@ -704,7 +779,7 @@ async function toolsContainerHandleContextMenuAction(action) {
       }       
       break
     case "flushed":      
-      loadTools(store);
+      await loadTools(store);
       selectTags(parseInt(selectedTags.value, 10));
       break;
     case "clear":  
@@ -717,7 +792,8 @@ async function toolsContainerHandleContextMenuAction(action) {
         let result = await invoke('clear_tool',  { menuId:parseInt(selectedMenuId.value), tagsId:parseInt(selectedTags.value)});
         if (result== 'ok') {
           console.log(result);
-          loadTools(store);
+          await loadTools(store);
+          await emit('toolUpdated', { action: 'clear' });
           selectTags(parseInt(selectedTags.value, 10));
         }else{
           await message(result, { title: '失败!', type: 'error' });
@@ -831,9 +907,11 @@ async function openEditDialog(type,edit_obj) {
 onMounted(async () => {
   try {
     // 鐩戝惉瀛愮獥鍙ｅ彂閫佺殑浜嬩欢
-    const toolUnlisten = await listen('toolUpdated', (event) => {
-      store.commit("updateOneTools", [event.payload.tool]);
-      loadTools(store)
+    const toolUnlisten = await listen('toolUpdated', async (event) => {
+      if (event.payload?.tool) {
+        store.commit("updateOneTools", [event.payload.tool]);
+      }
+      await loadTools(store)
       // console.log(alltools); // 杈撳嚭鎺ユ敹鍒扮殑鏁版嵁
       // Change_Tag(parseInt(selectedMenuId.value, 10), parseInt(selectedTags.value, 10));
     });
@@ -901,6 +979,7 @@ async function add_tool(file) {
   console.log(tooldata);
   if(tooldata=="ok"){
     await loadTools(store);
+    await emit('toolUpdated', { action: 'add', tool: add_tool });
     selectTags(parseInt(selectedTags.value, 10));
   }else{
     await message('保存失败!\n'+tooldata, { title: 'Error', type: 'error' });
@@ -975,6 +1054,7 @@ onMounted(async () => {
 
 onUnmounted(() => {
   stopResize();
+  removeToolPointerListeners();
   eventUnlisteners.splice(0).forEach((unlisten) => unlisten?.());
 })
 
@@ -1248,12 +1328,14 @@ function close_dropdown_click(skip = {}) {
           <div
             class="tools-button el-button"
             :class="{ 'is-moving-tool': draggingTool && Number(draggingTool.id) === Number(tools.id) }"
+            draggable="false"
             @pointerdown="startToolPointerDrag($event, tools)"
+            @dragstart.prevent
             @click="handleToolClick(tools)"
           >
             <el-tooltip :content="tools.target" effect="light">
               <span class="tools-button-inner">
-                  <img class="tools-button-icon" :src="tools.icon" alt="工具图标" />
+                  <img class="tools-button-icon" :src="tools.icon" alt="工具图标" draggable="false" />
                   <span class="tools-button-title">{{ tools.name }}</span>
               </span>
             </el-tooltip>
@@ -1281,7 +1363,7 @@ function close_dropdown_click(skip = {}) {
         class="tool-drag-ghost"
         :style="{ transform: `translate(${toolDragPoint.x + 12}px, ${toolDragPoint.y + 12}px)` }"
       >
-        <img class="tool-drag-ghost-icon" :src="draggingTool.icon" alt="">
+        <img class="tool-drag-ghost-icon" :src="draggingTool.icon" alt="" draggable="false">
         <span>{{ draggingTool.name }}</span>
         <span class="tool-drag-ghost-tip">右键取消</span>
       </div>

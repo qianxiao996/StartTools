@@ -200,7 +200,7 @@ async function submitForm() {
 
   const data = await invoke("update_tool", { tool: tool.value });
   if (data === "ok") {
-    emit('toolUpdated', { tool: tool.value });
+    await emit('toolUpdated', { action: tool.value.id > 0 ? 'edit' : 'add', tool: tool.value });
     currentWindow.close();
   } else {
     await message('保存失败!\n' + data, { title: 'Error', type: 'error' });

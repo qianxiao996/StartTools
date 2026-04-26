@@ -74,7 +74,7 @@ export async function toolsHandleContextMenuAction(store, action, tool, selected
       });
       if (answer) {
         console.log(`删除工具: ${tool.name}`);
-        DeleteTools(tool, store);
+        await DeleteTools(tool, store);
       }
       break;
     }
@@ -121,7 +121,8 @@ async function DeleteTools(tool, store) {
   const result = await invoke('delete_tool', { toolId: parseInt(tool.id) });
   console.log(result);
   if (result === 'ok') {
-    loadTools(store);
+    await loadTools(store);
+    await emit('toolUpdated', { action: 'delete', toolId: parseInt(tool.id) });
   } else {
     await message(result, { title: '失败!', type: 'error' });
   }
