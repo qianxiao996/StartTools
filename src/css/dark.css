@@ -1,0 +1,107 @@
+html.dark {
+    --st-titlebar-bg: #202329;
+    --st-titlebar-hover: #2b3038;
+    --st-panel-bg: #191c22;
+    --st-content-bg: #15181d;
+    --st-border-soft: #2a2f38;
+    --st-hover-bg: #222832;
+    --st-active-bg: #243246;
+    --st-shadow-menu: 0 14px 34px rgba(0, 0, 0, 0.42);
+}
+
+html.dark .el-container,
+html.dark .el-main,
+html.dark .tools-content,
+html.dark .search-tools-content,
+html.dark .toolsEdit-form-div,
+html.dark .global-edit {
+    background: var(--st-content-bg);
+}
+
+html.dark .el-aside {
+    background: var(--st-panel-bg);
+    border-right-color: var(--st-border-soft);
+}
+
+html.dark .el-header {
+    background: var(--st-content-bg);
+    border-bottom-color: var(--st-border-soft);
+}
+
+html.dark .titlebar {
+    background: var(--st-titlebar-bg);
+    color: var(--el-text-color-primary);
+    border-bottom-color: var(--st-border-soft);
+}
+
+html.dark .titlebar-button:hover {
+    background-color: var(--st-titlebar-hover) !important;
+}
+
+html.dark .resize-handle:hover {
+    background: var(--el-color-primary-dark-2);
+}
+
+html.dark .el-menu-item:hover {
+    background: var(--st-hover-bg);
+}
+
+html.dark .el-menu-item.is-active {
+    background: var(--st-active-bg);
+}
+
+html.dark .tools-button {
+    color: var(--el-text-color-primary) !important;
+}
+
+html.dark .tools-button:hover {
+    background-color: var(--st-hover-bg) !important;
+}
+
+html.dark .tools-button-title {
+    color: var(--el-text-color-primary);
+}
+
+html.dark .tools-custom-context-menu {
+    background-color: #1d2128;
+    border-color: var(--st-border-soft);
+    box-shadow: var(--st-shadow-menu);
+}
+
+html.dark .tools-context-menu-item:hover {
+    background-color: var(--st-hover-bg);
+}
+
+html.dark .el-dropdown-menu__item:nth-child(6n + 1) .el-icon {
+    --st-menu-icon-color: #60a5fa;
+}
+
+html.dark .el-dropdown-menu__item:nth-child(6n + 2) .el-icon {
+    --st-menu-icon-color: #4ade80;
+}
+
+html.dark .el-dropdown-menu__item:nth-child(6n + 3) .el-icon {
+    --st-menu-icon-color: #fbbf24;
+}
+
+html.dark .el-dropdown-menu__item:nth-child(6n + 4) .el-icon {
+    --st-menu-icon-color: #a78bfa;
+}
+
+html.dark .el-dropdown-menu__item:nth-child(6n + 5) .el-icon {
+    --st-menu-icon-color: #22d3ee;
+}
+
+html.dark .el-dropdown-menu__item:nth-child(6n) .el-icon {
+    --st-menu-icon-color: #f87171;
+}
+
+html.dark .tools-content,
+html.dark .search-tools-content {
+    scrollbar-color: #3a414d transparent;
+}
+
+html.dark .tools-content::-webkit-scrollbar-thumb,
+html.dark .search-tools-content::-webkit-scrollbar-thumb {
+    background: #3a414d;
+}

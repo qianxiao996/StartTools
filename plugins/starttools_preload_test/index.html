@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StartTools Preload Test</title>
+    <style>
+      body {
+        margin: 0;
+        font-family: "Segoe UI", Arial, sans-serif;
+        background: #f7f8fb;
+        color: #172033;
+      }
+
+      main {
+        max-width: 720px;
+        margin: 0 auto;
+        padding: 28px;
+      }
+
+      h1 {
+        margin: 0 0 14px;
+        font-size: 24px;
+      }
+
+      .status {
+        display: grid;
+        gap: 10px;
+      }
+
+      .row {
+        display: grid;
+        grid-template-columns: 140px minmax(0, 1fr);
+        gap: 12px;
+        padding: 10px 12px;
+        border: 1px solid #d9dee8;
+        border-radius: 8px;
+        background: #ffffff;
+      }
+
+      .label {
+        color: #64748b;
+      }
+
+      .value {
+        overflow-wrap: anywhere;
+        font-family: Consolas, "Cascadia Mono", monospace;
+      }
+
+      .ok {
+        color: #047857;
+        font-weight: 700;
+      }
+
+      .bad {
+        color: #b91c1c;
+        font-weight: 700;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>StartTools Preload Test</h1>
+      <section class="status">
+        <div class="row">
+          <span class="label">preload status</span>
+          <span id="preloadStatus" class="value bad">not detected</span>
+        </div>
+        <div class="row">
+          <span class="label">injected at</span>
+          <span id="preloadTime" class="value">-</span>
+        </div>
+        <div class="row">
+          <span class="label">plugin meta</span>
+          <span id="pluginMeta" class="value">-</span>
+        </div>
+        <div class="row">
+          <span class="label">bridge call</span>
+          <span id="bridgeResult" class="value">-</span>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      const bridge = window.startToolsPluginBridge;
+      const preloadStatus = document.querySelector('#preloadStatus');
+      const preloadTime = document.querySelector('#preloadTime');
+      const pluginMeta = document.querySelector('#pluginMeta');
+      const bridgeResult = document.querySelector('#bridgeResult');
+
+      pluginMeta.textContent = JSON.stringify(window.__STARTTOOLS_PLUGIN__ || {}, null, 2);
+
+      if (bridge) {
+        preloadStatus.textContent = 'injected';
+        preloadStatus.classList.remove('bad');
+        preloadStatus.classList.add('ok');
+        preloadTime.textContent = bridge.injectedAt || '-';
+        bridgeResult.textContent = bridge.ping('index.html');
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,37 @@
+[package]
+name = "starttools"
+version = "0.1.0"
+description = "A Tauri App"
+authors = ["you"]
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+# The `_lib` suffix may seem redundant but it is necessary
+# to make the lib name unique and wouldn't conflict with the bin name.
+# This seems to be only an issue on Windows, see https://github.com/rust-lang/cargo/issues/8519
+name = "starttools_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+#生产启用devtools
+tauri = { version = "2.4.0", features = ["devtools", "tray-icon"] }
+tauri-plugin-opener = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+rusqlite = { version = "0.31", features = ["bundled"] }
+tauri-plugin-dialog = "2"
+tauri-plugin-clipboard-manager = "2"
+log = "0.4"
+env_logger = "0.10"
+once_cell = "1.17" # 请检查是否有更新版本，并根据需要调整版本号
+winapi = { version = "^0.3.9", features = ["shellapi", "winuser", "fileapi", "errhandlingapi", "winerror", "wingdi"] }
+tauri-plugin-shell = "2"
+tauri-plugin-global-shortcut = "2"
+image = "0.24"
+base64 = "0.21"
+rfd = "0.14"

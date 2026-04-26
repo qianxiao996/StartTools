@@ -1,0 +1,16 @@
+.tools-form{
+    padding: 20px 20px;
+    /* display: flex; justify-content: center; align-items: center; height: auto; */
+}
+.button_container{
+    justify-content: center;
+    display: flex;
+    width:100%;
+}
+.tools-icon{
+    width: 100%; box-sizing: border-box;
+    display: flex; /* 使用 Flexbox 布局 */
+    justify-content: space-between; /* 两端对齐 */
+    align-items: center; /* 垂直居中 */
+    /* position: fixed; */
+}
