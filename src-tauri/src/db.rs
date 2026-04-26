@@ -1,4 +1,4 @@
-use crate::utils::DB_PATH;
+﻿use crate::utils::DB_PATH;
 use rusqlite::{params, Connection, Result};
 
 pub fn init_database() -> Result<()> {
@@ -232,91 +232,22 @@ fn column_exists(conn: &Connection, table: &str, column: &str) -> Result<bool> {
 fn seed_defaults(conn: &Connection) -> Result<()> {
     let menu_count: i64 = conn.query_row("SELECT COUNT(*) FROM menu", [], |row| row.get(0))?;
     if menu_count == 0 {
-        let menus = [
-            (1, "数据库工具", 0),
-            (2, "WebShell", 1),
-            (4, "漏洞利用", 2),
-            (5, "抓包代理", 3),
-            (7, "我的工具", 4),
-            (10, "综合扫描", 5),
-            (19, "字典社工", 6),
-            (9, "信息收集", 7),
-            (11, "CTF", 8),
-            (12, "编码解码", 9),
-            (14, "移动端", 10),
-            (15, "局域网攻击", 11),
-            (13, "应急查杀", 12),
-            (16, "代码审计", 13),
-            (17, "内网渗透", 14),
-            (18, "逆向破解", 15),
-            (20, "无线审计", 16),
-            (21, "其他文件", 17),
-        ];
-
-        for (id, name, sort) in menus {
-            conn.execute(
-                "INSERT OR IGNORE INTO menu (id, name, sort) VALUES (?1, ?2, ?3)",
-                params![id, name, sort],
-            )?;
-        }
+        conn.execute(
+            "INSERT OR IGNORE INTO menu (id, name, sort) VALUES (1, '默认分类', 0)",
+            [],
+        )?;
     }
 
     let tag_count: i64 = conn.query_row("SELECT COUNT(*) FROM tags", [], |row| row.get(0))?;
     if tag_count == 0 {
-        let tags = [
-            (1, "管理工具", 2, 0),
-            (2, "Shell", 2, 1),
-            (3, "端口扫描", 9, 0),
-            (4, "目录扫描", 9, 1),
-            (6, "子域名", 9, 2),
-            (12, "采集收集", 9, 3),
-            (13, "指纹识别", 9, 4),
-            (14, "暴力破解", 9, 5),
-            (7, "Web", 11, 0),
-            (8, "Crypto", 11, 1),
-            (9, "Misc", 11, 2),
-            (10, "Re", 11, 3),
-            (11, "Pwn", 11, 4),
-            (26, "通用", 11, 5),
-            (15, "Android", 14, 0),
-            (16, "IOS", 14, 1),
-            (17, "HarmonyOS", 14, 2),
-            (18, "Applet", 14, 3),
-            (28, "其他", 14, 4),
-            (42, "WSA", 14, 5),
-            (19, "SQL注入", 1, 0),
-            (20, "数据管理", 1, 1),
-            (21, "数据库提权", 1, 2),
-            (22, "JNDI注入", 1, 3),
-            (23, "环境搭建", 1, 4),
-            (24, "抓包工具", 5, 0),
-            (25, "代理工具", 5, 1),
-            (29, "字典", 19, 0),
-            (30, "Windows", 13, 0),
-            (31, "Linux", 13, 1),
-            (32, "其他工具", 13, 2),
-            (33, "内网工具", 17, 0),
-            (34, "密码工具", 17, 1),
-            (35, "横向移动", 17, 2),
-            (36, "清理", 17, 3),
-            (37, "权限提升", 17, 4),
-            (38, "权限维持", 17, 5),
-            (39, "文件下载", 17, 6),
-            (40, "免杀", 17, 7),
-            (41, "近源渗透", 19, 1),
-        ];
-
-        for (id, name, menu_id, sort) in tags {
-            conn.execute(
-                "INSERT OR IGNORE INTO tags (id, name, menu_id, sort) VALUES (?1, ?2, ?3, ?4)",
-                params![id, name, menu_id, sort],
-            )?;
-        }
+        conn.execute(
+            "INSERT OR IGNORE INTO tags (id, name, menu_id, sort) VALUES (1, '默认标签', 1, 0)",
+            [],
+        )?;
     }
 
     Ok(())
 }
-
 fn seed_config(conn: &Connection) -> Result<()> {
     let defaults = [
         ("X", "0"),
@@ -385,15 +316,16 @@ fn seed_legacy_starttools_plugin(conn: &Connection) -> Result<()> {
 
         conn.execute(
             "INSERT INTO legacy_starttools_plugin_structure (id, entry_kind, name, code, explain, sort)
-             VALUES (1, 'feature', 'starttools', 'starttools', 'StartTools 工具启动器', 0)",
+             VALUES (1, 'feature', 'starttools', 'starttools', 'StartTools 宸ュ叿鍚姩鍣?, 0)",
             [],
         )?;
         conn.execute(
             "INSERT INTO legacy_starttools_plugin_structure (id, entry_kind, name, code, explain, sort)
-             VALUES (2, 'feature', 'starttools-run', 'starttools-run', '搜索并运行 StartTools 工具', 1)",
+             VALUES (2, 'feature', 'starttools-run', 'starttools-run', '鎼滅储骞惰繍琛?StartTools 宸ュ叿', 1)",
             [],
         )?;
     }
 
     Ok(())
 }
+
